@@ -1,5 +1,3 @@
-// src/screens/LoginScreen.jsx
-
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ImageBackground, StyleSheet, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
