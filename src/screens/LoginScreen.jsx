@@ -1,33 +1,56 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ImageBackground, StyleSheet, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ImageBackground, StyleSheet, ActivityIndicator} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import axios from "axios";
-import { AsyncStorage } from "@react-native-async-storage/async-storage";
+import { login } from "../config/Api";
+import Toast from "react-native-toast-message";
 
 const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    setLoading(true);
     try {
-      const response = await axios.post("http://localhost:8080/auth/resident/login", {
-        username,
-        password,
-      });
+      const data = await login(username, password);
 
-      if (response.status === 200) {
-        const { token } = response.data;
-        await AsyncStorage.setItem("token", token);  // Guardar token en AsyncStorage
-        navigation.replace("ResidentScreen");  // Redirigir al residente
+      if (data && data.role === "RESIDENT") {
+        Toast.show({
+          type: "success",
+          text1: "¡Bienvenido!",
+          text2: "Redirigiendo al panel del residente...",
+        });
+      
+        setTimeout(() => {
+          navigation.replace("SplashWelcome");
+        }, 1000);
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Acceso denegado",
+          text2: "Este usuario no tiene acceso móvil",
+        });
       }
     } catch (error) {
-      Alert.alert("Error", "Los datos son incorrectos o el usuario no existe.");
+      Toast.show({
+        type: "error",
+        text1: "Credenciales incorrectas",
+        text2: "Por favor, verifique sus credenciales",
+      });
+      setTimeout(() => {
+        Toast.hide();
+      }, 2000);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <ImageBackground source={require("../../assets/login_bg.png")} style={styles.backgroundImage}>
+    <ImageBackground
+      source={require("../../assets/login_bg.png")}
+      style={styles.backgroundImage}
+    >
       <View style={styles.overlay}>
         <View style={styles.container}>
           <Text style={styles.title}>Iniciar sesión</Text>
@@ -57,11 +80,19 @@ const LoginScreen = ({ navigation }) => {
               style={styles.input}
             />
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#fff" />
+              <Ionicons
+                name={showPassword ? "eye-off-outline" : "eye-outline"}
+                size={20}
+                color="#fff"
+              />
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          {loading && (
+            <ActivityIndicator size="large" color="#E96443" style={{ marginBottom: 10 }} />
+          )}
+
+          <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
             <Text style={styles.buttonText}>Iniciar</Text>
           </TouchableOpacity>
         </View>
@@ -73,45 +104,45 @@ const LoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
-    resizeMode: "cover", // Asegura que la imagen ocupe todo el fondo
+    resizeMode: "cover",
   },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)", // Agregar una capa de fondo oscuro para que el contenido sea legible
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
     justifyContent: "center",
     alignItems: "center",
   },
   container: {
     width: "85%",
-    backgroundColor: "rgba(0, 0, 0, 0.7)", // Fondo oscuro para que el contenido resalte
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
     padding: 20,
     borderRadius: 15,
     alignItems: "center",
   },
   title: {
-    fontSize: 28, // Aumento el tamaño del título
+    fontSize: 28,
     fontWeight: "bold",
     color: "#fff",
-    marginBottom: 20, // Separa el título de los siguientes elementos
+    marginBottom: 20,
   },
   subtitle: {
-    fontSize: 16, // Aumento ligeramente el tamaño del subtítulo
+    fontSize: 16,
     color: "#ccc",
-    marginBottom: 30, // Añadí más espacio entre el subtítulo y los campos de entrada
+    marginBottom: 30,
   },
   label: {
     alignSelf: "flex-start",
     color: "#fff",
     marginBottom: 5,
-    fontSize: 14, // Establece un tamaño consistente para las etiquetas
+    fontSize: 14,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.2)", // Fondo claro pero semi-transparente para los campos
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     borderRadius: 10,
     paddingHorizontal: 10,
-    marginBottom: 20, // Aumenté el espacio entre los campos
+    marginBottom: 20,
     width: "100%",
   },
   icon: {
@@ -121,10 +152,10 @@ const styles = StyleSheet.create({
     flex: 1,
     color: "#fff",
     paddingVertical: 12,
-    fontSize: 16, // Aumenté ligeramente el tamaño de la fuente
+    fontSize: 16,
   },
   button: {
-    backgroundColor: "#E96443", // Mantengo el color de botón
+    backgroundColor: "#E96443",
     paddingVertical: 14,
     paddingHorizontal: 40,
     borderRadius: 10,
@@ -132,7 +163,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#fff",
-    fontSize: 18, // Aumenté el tamaño del texto en el botón
+    fontSize: 18,
     fontWeight: "bold",
   },
 });
