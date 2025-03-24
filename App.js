@@ -9,6 +9,11 @@ import ResidentScreen from "./src/screens/ResidentScreen";
 import CreateVisitScreen from "./src/screens/CreateVisitScreen";
 import RegisterWorkerScreen from "./src/screens/RegisterWorkerScreen";
 import SplashWelcomeScreen from "./src/screens/SplashWelcomeScreen";
+import SplashWelcomeGuardScreen from "./src/screens/SplashWelcomeGuardScreen";
+import GuardScreen from "./src/screens/GuardScreen";
+import { LogBox } from "react-native";
+
+LogBox.ignoreLogs(["Error en login: Credenciales incorrectas"]);
 
 const Stack = createStackNavigator();
 
@@ -27,11 +32,13 @@ export default function App() {
     <>
       <NavigationContainer>
         <Stack.Navigator initialRouteName={isAuthenticated ? "ResidentScreen" : "LoginScreen"}>
-        <Stack.Screen name="SplashWelcome" component={SplashWelcomeScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="SplashWelcome" component={SplashWelcomeScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="SplashWelcomeGuard" component={SplashWelcomeGuardScreen} options={{ headerShown: false }}/>
           <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="ResidentScreen" component={ResidentScreen} />
           <Stack.Screen name="CreateVisit" component={CreateVisitScreen} />
           <Stack.Screen name="RegisterWorker" component={RegisterWorkerScreen} />
+          <Stack.Screen name="GuardScreen" component={GuardScreen} />
         </Stack.Navigator>
       </NavigationContainer>
 
@@ -82,6 +89,33 @@ export default function App() {
                 marginHorizontal: 10,
               }}
             >          
+              <View style={{ flex: 1, marginRight: 10 }}>
+                <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 16 }}>{text1}</Text>
+                <Text style={{ color: "#ddd", fontSize: 14 }}>{text2}</Text>
+              </View>
+              <Image
+                source={require("./assets/error_x.png")}
+                style={{ width: 50, height: 50, borderRadius: 10 }}
+              />
+            </View>
+          ),
+          logout: ({ text1, text2, ...rest }) => (
+            <View
+              style={{
+                backgroundColor: "#2e2e2e",
+                borderLeftColor: "#E96443",
+                borderLeftWidth: 5,
+                borderRadius: 12,
+                padding: 15,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                shadowColor: "#000",
+                shadowOpacity: 0.2,
+                shadowRadius: 4,
+                marginHorizontal: 10,
+              }}
+            >
               <View style={{ flex: 1, marginRight: 10 }}>
                 <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 16 }}>{text1}</Text>
                 <Text style={{ color: "#ddd", fontSize: 14 }}>{text2}</Text>

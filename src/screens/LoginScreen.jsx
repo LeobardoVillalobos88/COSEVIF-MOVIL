@@ -5,7 +5,7 @@ import { login } from "../config/Api";
 import Toast from "react-native-toast-message";
 
 const LoginScreen = ({ navigation }) => {
-  const [username, setUsername] = useState("");
+  const [identifier, setIdentifier] = useState(""); // puede ser email o phone
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -13,23 +13,31 @@ const LoginScreen = ({ navigation }) => {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const data = await login(username, password);
+      const data = await login(identifier, password);
 
       if (data && data.role === "RESIDENT") {
         Toast.show({
           type: "success",
           text1: "¡Bienvenido!",
-          text2: "Redirigiendo al panel del residente...",
+          text2: "Redirigiendo...",
         });
-      
         setTimeout(() => {
           navigation.replace("SplashWelcome");
+        }, 1000);
+      } else if (data && data.role === "GUARDIA") {
+        Toast.show({
+          type: "success",
+          text1: "¡Bienvenido guardia!",
+          text2: "Accediendo al panel...",
+        });
+        setTimeout(() => {
+          navigation.replace("SplashWelcomeGuard");
         }, 1000);
       } else {
         Toast.show({
           type: "error",
           text1: "Acceso denegado",
-          text2: "Este usuario no tiene acceso móvil",
+          text2: "No tienes acceso móvil",
         });
       }
     } catch (error) {
@@ -56,21 +64,32 @@ const LoginScreen = ({ navigation }) => {
           <Text style={styles.title}>Iniciar sesión</Text>
           <Text style={styles.subtitle}>Bienvenido a COSEVIF</Text>
 
-          <Text style={styles.label}>Correo o Teléfono</Text>
+          <Text style={styles.label}>Correo o número de telefono</Text>
           <View style={styles.inputContainer}>
-            <Ionicons name="person-outline" size={20} color="#fff" style={styles.icon} />
+            <Ionicons
+              name="person-outline"
+              size={20}
+              color="#fff"
+              style={styles.icon}
+            />
             <TextInput
-              value={username}
-              onChangeText={setUsername}
-              placeholder="Correo o Teléfono"
+              value={identifier}
+              onChangeText={setIdentifier}
+              placeholder="Correo o número"
               placeholderTextColor="#ccc"
               style={styles.input}
+              keyboardType="default"
+              autoCapitalize="none"
             />
           </View>
-
           <Text style={styles.label}>Contraseña</Text>
           <View style={styles.inputContainer}>
-            <Ionicons name="key-outline" size={20} color="#fff" style={styles.icon} />
+            <Ionicons
+              name="key-outline"
+              size={20}
+              color="#fff"
+              style={styles.icon}
+            />
             <TextInput
               value={password}
               onChangeText={setPassword}
@@ -89,10 +108,18 @@ const LoginScreen = ({ navigation }) => {
           </View>
 
           {loading && (
-            <ActivityIndicator size="large" color="#E96443" style={{ marginBottom: 10 }} />
+            <ActivityIndicator
+              size="large"
+              color="#E96443"
+              style={{ marginBottom: 10 }}
+            />
           )}
 
-          <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleLogin}
+            disabled={loading}
+          >
             <Text style={styles.buttonText}>Iniciar</Text>
           </TouchableOpacity>
         </View>

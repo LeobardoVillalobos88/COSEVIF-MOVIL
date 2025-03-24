@@ -2,27 +2,35 @@ import { saveSession } from "./Storage";
 
 const API_URL = "http://192.168.0.40:8080"; // tu IP local
 
-export const login = async (username, password) => {
-    try {
-      const response = await fetch(`${API_URL}/auth/resident/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
-  
-      // ✅ Verificamos si la respuesta es 200 antes de intentar hacer .json()
-      if (!response.ok) {
-        throw new Error("Credenciales incorrectas");
-      }
-  
-      const data = await response.json();
-      await saveSession(data);
-      return data;
-    } catch (error) {
-      console.log("Error en login:", error.message);
-      throw new Error("No se pudo iniciar sesión");
+export const login = async (identifier, password) => {
+  const isPhone = /^[0-9]{10}$/.test(identifier);
+
+  const url = isPhone
+    ? `${API_URL}/auth/guard/login`
+    : `${API_URL}/auth/resident/login`;
+
+  const body = isPhone
+    ? { phone: identifier, password }
+    : { email: identifier, password };
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error("Credenciales incorrectas");
     }
-  };
-  
+
+    const data = await response.json();
+    await saveSession(data); // Guarda token, id, role, name
+    return data;
+  } catch (error) {
+    console.error("Error en login:", error.message);
+    throw new Error("No se pudo iniciar sesión");
+  }
+};
