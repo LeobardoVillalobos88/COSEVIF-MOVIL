@@ -1,6 +1,6 @@
 import { saveSession } from "./Storage";
 
-const API_URL = "http://192.168.0.40:8080"; // tu IP local
+const API_URL = "http://192.168.0.40:8080"; // OYE SI CLONASTE EL REPO ACUERDATE DE CAMBIAR LA IP A LA DE TU MAQUINA SI NO NO JALA
 
 export const login = async (identifier, password) => {
   const isPhone = /^[0-9]{10}$/.test(identifier);
@@ -27,7 +27,7 @@ export const login = async (identifier, password) => {
     }
 
     const data = await response.json();
-    await saveSession(data); // Guarda token, id, role, name
+    await saveSession(data);
     return data;
   } catch (error) {
     console.error("Error en login:", error.message);
