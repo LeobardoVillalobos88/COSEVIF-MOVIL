@@ -11,6 +11,7 @@ import RegisterWorkerScreen from "./src/screens/RegisterWorkerScreen";
 import SplashWelcomeScreen from "./src/screens/SplashWelcomeScreen";
 import SplashWelcomeGuardScreen from "./src/screens/SplashWelcomeGuardScreen";
 import GuardScreen from "./src/screens/GuardScreen";
+import ProfileScreen from "./src/screens/ProfileScreen";
 import { LogBox } from "react-native";
 
 LogBox.ignoreLogs(["Error en login: Credenciales incorrectas"]);
@@ -33,8 +34,9 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator initialRouteName={isAuthenticated ? "ResidentScreen" : "LoginScreen"}>
           <Stack.Screen name="SplashWelcome" component={SplashWelcomeScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="SplashWelcomeGuard" component={SplashWelcomeGuardScreen} options={{ headerShown: false }}/>
+          <Stack.Screen name="SplashWelcomeGuard" component={SplashWelcomeGuardScreen} options={{ headerShown: false }} />
           <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
           <Stack.Screen name="ResidentScreen" component={ResidentScreen} />
           <Stack.Screen name="CreateVisit" component={CreateVisitScreen} />
           <Stack.Screen name="RegisterWorker" component={RegisterWorkerScreen} />

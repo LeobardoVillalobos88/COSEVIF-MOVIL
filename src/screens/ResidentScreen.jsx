@@ -1,22 +1,9 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { clearSession } from "../config/Storage";
 import Toast from "react-native-toast-message";
 
 const ResidentScreen = ({ navigation }) => {
-  const handleLogout = async () => {
-    Toast.show({
-      type: "logout",
-      text1: "Cerrando sesión",
-      text2: "Gracias por usar COSEVIF",
-    });
-  
-    setTimeout(async () => {
-      await clearSession();
-      navigation.replace("LoginScreen");
-    }, 1500);
-  };
-
   return (
     <View style={styles.container}>
       <Text style={styles.welcomeText}>Bienvenido Residente</Text>
@@ -35,8 +22,11 @@ const ResidentScreen = ({ navigation }) => {
         <Text style={styles.buttonText}>Registrar Trabajador</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutText}>Cerrar sesión</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate("ProfileScreen")}
+      >
+        <Text style={styles.buttonText}>Ver perfil</Text>
       </TouchableOpacity>
     </View>
   );
@@ -68,18 +58,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontSize: 18,
-    fontWeight: "bold",
-  },
-  logoutButton: {
-    marginTop: 30,
-    backgroundColor: "#ccc",
-    paddingVertical: 10,
-    paddingHorizontal: 30,
-    borderRadius: 10,
-  },
-  logoutText: {
-    fontSize: 16,
-    color: "#333",
     fontWeight: "bold",
   },
 });

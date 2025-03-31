@@ -4,25 +4,15 @@ import { clearSession } from "../config/Storage";
 import Toast from "react-native-toast-message";
 
 const GuardScreen = ({ navigation }) => {
-  const handleLogout = async () => {
-    Toast.show({
-      type: "logout",
-      text1: "Cerrando sesión",
-      text2: "Gracias por usar COSEVIF",
-    });
-  
-    setTimeout(async () => {
-      await clearSession();
-      navigation.replace("LoginScreen");
-    }, 1500);
-  };
-
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Bienvenido guardia</Text>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutText}>Cerrar sesión</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate("ProfileScreen")}
+      >
+        <Text style={styles.buttonText}>Ver perfil</Text>
       </TouchableOpacity>
     </View>
   );
@@ -41,15 +31,18 @@ const styles = StyleSheet.create({
     color: "#E96443",
     marginBottom: 40,
   },
-  logoutButton: {
-    backgroundColor: "#ccc",
-    paddingVertical: 10,
-    paddingHorizontal: 30,
+  button: {
+    backgroundColor: "#E96443",
+    paddingVertical: 15,
+    paddingHorizontal: 40,
     borderRadius: 10,
+    marginBottom: 20,
+    width: "80%",
+    alignItems: "center",
   },
-  logoutText: {
-    fontSize: 16,
-    color: "#333",
+  buttonText: {
+    color: "#fff",
+    fontSize: 18,
     fontWeight: "bold",
   },
 });

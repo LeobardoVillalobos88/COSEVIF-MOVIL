@@ -1,6 +1,6 @@
 import { saveSession } from "./Storage";
 
-const API_URL = "http://192.168.0.40:8080"; // OYE SI CLONASTE EL REPO ACUERDATE DE CAMBIAR LA IP A LA DE TU MAQUINA SI NO NO JALA
+const API_URL = "http://192.168.110.134:8080";
 
 export const login = async (identifier, password) => {
   const isPhone = /^[0-9]{10}$/.test(identifier);
@@ -22,11 +22,10 @@ export const login = async (identifier, password) => {
       body: JSON.stringify(body),
     });
 
-    if (!response.ok) {
-      throw new Error("Credenciales incorrectas");
-    }
+    if (!response.ok) throw new Error("Credenciales incorrectas");
 
     const data = await response.json();
+
     await saveSession(data);
     return data;
   } catch (error) {
