@@ -22,7 +22,7 @@ const LoginScreen = ({ navigation }) => {
           text2: "Redirigiendo...",
         });
         setTimeout(() => {
-          navigation.replace("SplashWelcome");
+          navigation.replace("SplashWelcomeResident");
         }, 1000);
       } else if (data && data.role === "GUARDIA") {
         Toast.show({
