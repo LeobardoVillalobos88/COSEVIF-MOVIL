@@ -1,9 +1,19 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
-import { saveSession, getItem } from "../config/Storage";
-//import { API_URL } from "../config/Api";  // Configura tu API_URL
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Platform,
+} from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import Toast from "react-native-toast-message";
-const API_URL = "http://192.168.110.134:8080";
+import { getItem } from "../config/Storage";
+
+const API_URL = "http://192.168.0.40:8080";
+
 const CreateVisitScreen = ({ navigation }) => {
   const [visitorName, setVisitorName] = useState("");
   const [vehiclePlate, setVehiclePlate] = useState("");
@@ -11,7 +21,22 @@ const CreateVisitScreen = ({ navigation }) => {
   const [description, setDescription] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [qrCode, setQRCode] = useState("");
+
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedTime, setSelectedTime] = useState(new Date());
+
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+
+  const onChangeDate = (_, date) => {
+    setShowDatePicker(false);
+    if (date) setSelectedDate(date);
+  };
+
+  const onChangeTime = (_, time) => {
+    setShowTimePicker(false);
+    if (time) setSelectedTime(time);
+  };
 
   const handleCreateVisit = async () => {
     setLoading(true);
@@ -21,11 +46,7 @@ const CreateVisitScreen = ({ navigation }) => {
       const residentId = await getItem("id");
       const houseId = await getItem("houseId");
   
-      console.log("TOKEN:", token);
-      console.log("RESIDENT ID:", residentId);
-      console.log("HOUSE ID:", houseId);
-  
-      if (!residentId || !houseId || !token) {
+      if (!token || !residentId || !houseId) {
         Toast.show({
           type: "error",
           text1: "Sesión inválida",
@@ -35,16 +56,24 @@ const CreateVisitScreen = ({ navigation }) => {
         return;
       }
   
+      const combinedDate = new Date(selectedDate);
+      combinedDate.setHours(selectedTime.getHours());
+      combinedDate.setMinutes(selectedTime.getMinutes());
+      combinedDate.setSeconds(0);
+      combinedDate.setMilliseconds(0);
+  
+      const offset = combinedDate.getTimezoneOffset(); // en minutos
+      const localDate = new Date(combinedDate.getTime() - offset * 60000);
+      const dateTimeIso = localDate.toISOString().slice(0, 19); // sin zona
+  
       const visitData = {
         visitorName,
         vehiclePlate,
         numPeople: parseInt(numPeople),
         description,
         password,
-        dateTime: new Date().toISOString(),
+        dateTime: dateTimeIso,
       };
-  
-      console.log("Visit data a enviar:", visitData);
   
       const response = await fetch(`${API_URL}/resident/visit`, {
         method: "POST",
@@ -55,27 +84,26 @@ const CreateVisitScreen = ({ navigation }) => {
         body: JSON.stringify(visitData),
       });
   
-      console.log("RESPONSE STATUS:", response.status);
-  
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("Error response:", errorData);
-        throw new Error(errorData.message || "Error al crear visita");
+        throw new Error(errorData.message || "Error al crear la visita");
       }
   
       const data = await response.json();
-      console.log("Respuesta exitosa:", data);
+      console.log("✅ Visita creada:", data);
   
-      setQRCode(data.qrCode);
       Toast.show({
         type: "success",
         text1: "Visita creada",
-        text2: "El código QR ha sido generado",
+        text2: data.qrCode ? "QR generado exitosamente" : "QR aún no disponible",
       });
-  
-      setTimeout(() => navigation.navigate("ResidentScreen"), 2000);
+      
+      // ✅ Navegar correctamente dentro del stack
+      navigation.navigate("ResidentStack", {
+        screen: "VisitsListScreen",
+      });
     } catch (error) {
-      console.error("Error en handleCreateVisit:", error);
+      console.error("❌ Error:", error);
       Toast.show({
         type: "error",
         text1: "Error al crear la visita",
@@ -85,7 +113,6 @@ const CreateVisitScreen = ({ navigation }) => {
       setLoading(false);
     }
   };
-  
 
   return (
     <View style={styles.container}>
@@ -107,8 +134,8 @@ const CreateVisitScreen = ({ navigation }) => {
         style={styles.input}
         placeholder="Número de personas"
         value={numPeople}
-        keyboardType="numeric"
         onChangeText={setNumPeople}
+        keyboardType="numeric"
       />
       <TextInput
         style={styles.input}
@@ -123,69 +150,100 @@ const CreateVisitScreen = ({ navigation }) => {
         onChangeText={setPassword}
       />
 
-      {loading && <ActivityIndicator size="large" color="#E96443" />}
-
-      <TouchableOpacity style={styles.button} onPress={handleCreateVisit} disabled={loading}>
-        <Text style={styles.buttonText}>Crear Visita</Text>
+      {/* FECHA */}
+      <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
+        <Text style={styles.dateText}>
+          Fecha: {selectedDate.toLocaleDateString()}
+        </Text>
       </TouchableOpacity>
 
-      {qrCode ? (
-        <View style={styles.qrContainer}>
-          <Text style={styles.qrText}>Código QR de la visita:</Text>
-          <Image source={{ uri: qrCode }} style={styles.qrImage} />
-        </View>
-      ) : null}
+      {showDatePicker && (
+        <DateTimePicker
+          value={selectedDate}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={onChangeDate}
+        />
+      )}
+
+      {/* HORA */}
+      <TouchableOpacity style={styles.dateButton} onPress={() => setShowTimePicker(true)}>
+        <Text style={styles.dateText}>
+          Hora: {selectedTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+        </Text>
+      </TouchableOpacity>
+
+      {showTimePicker && (
+        <DateTimePicker
+          value={selectedTime}
+          mode="time"
+          is24Hour={false}
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={onChangeTime}
+        />
+      )}
+
+      {loading && <ActivityIndicator size="large" color="#E96443" />}
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleCreateVisit}
+        disabled={loading}
+      >
+        <Text style={styles.buttonText}>Crear Visita</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
+export default CreateVisitScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
     padding: 20,
+    paddingTop: 60,
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: 25,
   },
   input: {
-    width: "80%",
-    height: 40,
+    width: "90%",
+    height: 45,
     borderColor: "#ccc",
     borderWidth: 1,
-    marginBottom: 15,
-    paddingLeft: 10,
-    borderRadius: 5,
+    marginBottom: 12,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+  },
+  dateButton: {
+    backgroundColor: "#E96443",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginBottom: 10,
+    width: "90%",
+    alignItems: "center",
+  },
+  dateText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   button: {
-    backgroundColor: "#E96443",
-    paddingVertical: 14,
-    paddingHorizontal: 40,
-    borderRadius: 10,
     marginTop: 20,
+    backgroundColor: "#E96443",
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 10,
   },
   buttonText: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "bold",
-  },
-  qrContainer: {
-    marginTop: 20,
-    alignItems: "center",
-  },
-  qrText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  qrImage: {
-    width: 150,
-    height: 150,
-    borderRadius: 10,
   },
 });
-
-export default CreateVisitScreen;

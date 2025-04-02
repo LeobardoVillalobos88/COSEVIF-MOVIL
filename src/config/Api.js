@@ -1,6 +1,6 @@
 import { saveSession } from "./Storage";
 
-const API_URL = "http://192.168.110.134:8080";
+const API_URL = "http://192.168.0.40:8080";
 
 export const login = async (identifier, password) => {
   const isPhone = /^[0-9]{10}$/.test(identifier);

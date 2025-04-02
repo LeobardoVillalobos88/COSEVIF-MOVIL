@@ -22,7 +22,7 @@ const SplashWelcomeScreen = ({ navigation }) => {
     }).start();
 
     const timer = setTimeout(() => {
-      navigation.replace("ResidentScreen");
+      navigation.replace("ResidentStack");
     }, 2000);
 
     return () => clearTimeout(timer);

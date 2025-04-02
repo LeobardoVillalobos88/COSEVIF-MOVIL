@@ -7,26 +7,34 @@ const ResidentScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.welcomeText}>Bienvenido Residente</Text>
-
+  
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate("CreateVisit")}
       >
         <Text style={styles.buttonText}>Crear Visita</Text>
       </TouchableOpacity>
-
+  
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate("RegisterWorker")}
       >
         <Text style={styles.buttonText}>Registrar Trabajador</Text>
       </TouchableOpacity>
-
+  
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate("ProfileScreen")}
       >
         <Text style={styles.buttonText}>Ver perfil</Text>
+      </TouchableOpacity>
+  
+      {/* ✅ Nuevo botón para ver visitas */}
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate("VisitsListScreen")}
+      >
+        <Text style={styles.buttonText}>Ver Visitas</Text>
       </TouchableOpacity>
     </View>
   );

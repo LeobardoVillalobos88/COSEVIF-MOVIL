@@ -28,7 +28,7 @@ const SplashWelcomeGuardScreen = ({ navigation }) => {
     }).start();
 
     const timer = setTimeout(() => {
-      navigation.replace("GuardScreen"); // <- esta será tu vista del guardia
+      navigation.replace("GuardiaStack");
     }, 2000);
 
     return () => clearTimeout(timer);
