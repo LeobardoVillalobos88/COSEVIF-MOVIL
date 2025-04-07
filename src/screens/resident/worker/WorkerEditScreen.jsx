@@ -10,39 +10,67 @@ import {
   Platform,
 } from "react-native";
 import Toast from "react-native-toast-message";
-import * as DocumentPicker from "expo-document-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import * as DocumentPicker from "expo-document-picker";
 import { getItem } from "../../../config/Storage";
 import { API_URL } from "../../../config/IP";
+import { Ionicons } from "@expo/vector-icons";
+import moment from "moment";
 
-const RegisterWorkerScreen = ({ navigation }) => {
-  const [workerName, setWorkerName] = useState("");
-  const [age, setAge] = useState("");
-  const [address, setAddress] = useState("");
+const WorkerEditScreen = ({ route, navigation }) => {
+  const { worker } = route.params;
+  const visit = worker.visit;
+  const workerId = visit.id;
+
+  const [workerName, setWorkerName] = useState(visit.workerName || "");
+  const [age, setAge] = useState(visit.age?.toString() || "");
+  const [address, setAddress] = useState(visit.address || "");
   const [inePhoto, setInePhoto] = useState(null);
-  const [loading, setLoading] = useState(false);
 
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTime, setSelectedTime] = useState(new Date());
+  const initialDate = visit.dateTime
+    ? new Date(visit.dateTime.replace(" ", "T"))
+    : new Date();
+  const [selectedDate, setSelectedDate] = useState(initialDate);
+
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const onChangeDate = (_, date) => {
+    setShowDatePicker(false);
+    if (date) {
+      const updated = new Date(selectedDate);
+      updated.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+      setSelectedDate(updated);
+    }
+  };
+
+  const onChangeTime = (_, time) => {
+    setShowTimePicker(false);
+    if (time) {
+      const newDate = new Date(selectedDate);
+      newDate.setHours(time.getHours());
+      newDate.setMinutes(time.getMinutes());
+      setSelectedDate(newDate);
+    }
+  };
 
   const handleImagePick = async () => {
     const result = await DocumentPicker.getDocumentAsync({
       type: "image/*",
     });
 
-    if (!result.canceled && result.assets && result.assets.length > 0) {
+    if (!result.canceled && result.assets?.length > 0) {
       setInePhoto(result.assets[0].uri);
     }
   };
 
-  const handleRegisterWorker = async () => {
-    if (!workerName || !age || !address || !inePhoto) {
+  const handleUpdateWorker = async () => {
+    if (!workerName || !age || !address) {
       Toast.show({
         type: "error",
-        text1: "Error",
-        text2: "Todos los campos son obligatorios.",
+        text1: "Campos obligatorios",
+        text2: "Por favor completa todos los campos.",
       });
       return;
     }
@@ -51,64 +79,46 @@ const RegisterWorkerScreen = ({ navigation }) => {
 
     try {
       const token = await getItem("token");
-      if (!token) {
-        Toast.show({
-          type: "error",
-          text1: "Sesión inválida",
-          text2: "Token no proporcionado",
-        });
-        setLoading(false);
-        return;
-      }
-
-      const combinedDate = new Date(selectedDate);
-      combinedDate.setHours(selectedTime.getHours());
-      combinedDate.setMinutes(selectedTime.getMinutes());
-      combinedDate.setSeconds(0);
-      combinedDate.setMilliseconds(0);
-
-      const offset = combinedDate.getTimezoneOffset();
-      const localDate = new Date(combinedDate.getTime() - offset * 60000);
-      const formattedDate = localDate.toISOString().slice(0, 19); // sin milisegundos ni Z
-
       const formData = new FormData();
+
       formData.append("workerName", workerName);
       formData.append("age", parseInt(age));
       formData.append("address", address);
-      formData.append("dateTime", formattedDate);
-      formData.append("inePhoto", {
-        uri: inePhoto,
-        type: "image/jpeg",
-        name: "ine.jpg",
-      });
 
-      const response = await fetch(`${API_URL}/resident/workerVisits`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const localDate = new Date(
+        selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000
+      );
+      const dateTimeIso = localDate.toISOString().slice(0, 19);
+      formData.append("dateTime", dateTimeIso);
+
+      if (inePhoto) {
+        formData.append("inePhoto", {
+          uri: inePhoto,
+          type: "image/jpeg",
+          name: "ine.jpg",
+        });
+      }
+
+      const response = await fetch(`${API_URL}/resident/workerVisits/${workerId}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-
-      const status = response.status;
-      const resText = await response.text();
 
       if (response.ok) {
         Toast.show({
           type: "success",
-          text1: "Trabajador registrado",
-          text2: "El trabajador ha sido registrado exitosamente.",
+          text1: "Trabajador actualizado",
         });
-        navigation.navigate("WorkersListScreen");
+        navigation.navigate("ResidentStack", { screen: "WorkersListScreen" });
       } else {
-        throw new Error(`Error al registrar el trabajador. Status: ${status}, Respuesta: ${resText}`);
+        throw new Error("Error al actualizar trabajador");
       }
-    } catch (error) {
-      console.error("❌ Error en el registro:", error);
+    } catch (err) {
       Toast.show({
         type: "error",
-        text1: "Error al registrar el trabajador",
-        text2: error.message,
+        text1: "Error",
+        text2: err.message,
       });
     } finally {
       setLoading(false);
@@ -117,11 +127,18 @@ const RegisterWorkerScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Registrar Trabajador</Text>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={styles.backButton}
+      >
+        <Ionicons name="arrow-back" size={28} color="#E96443" />
+      </TouchableOpacity>
+
+      <Text style={styles.title}>Editar Trabajador</Text>
 
       <TextInput
         style={styles.input}
-        placeholder="Nombre del trabajador"
+        placeholder="Nombre"
         value={workerName}
         onChangeText={setWorkerName}
       />
@@ -139,53 +156,66 @@ const RegisterWorkerScreen = ({ navigation }) => {
         onChangeText={setAddress}
       />
 
-      <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
+      <TouchableOpacity
+        style={styles.dateButton}
+        onPress={() => setShowDatePicker(true)}
+      >
         <Text style={styles.dateText}>
           Fecha: {selectedDate.toLocaleDateString()}
         </Text>
       </TouchableOpacity>
+
       {showDatePicker && (
         <DateTimePicker
           value={selectedDate}
           mode="date"
           display={Platform.OS === "ios" ? "spinner" : "default"}
-          onChange={(_, date) => {
-            setShowDatePicker(false);
-            if (date) setSelectedDate(date);
-          }}
+          onChange={onChangeDate}
         />
       )}
 
-      <TouchableOpacity style={styles.dateButton} onPress={() => setShowTimePicker(true)}>
+      <TouchableOpacity
+        style={styles.dateButton}
+        onPress={() => setShowTimePicker(true)}
+      >
         <Text style={styles.dateText}>
-          Hora: {selectedTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          Hora: {moment(selectedDate).format("hh:mm A")}
         </Text>
       </TouchableOpacity>
+
       {showTimePicker && (
         <DateTimePicker
-          value={selectedTime}
+          value={selectedDate}
           mode="time"
           is24Hour={false}
           display={Platform.OS === "ios" ? "spinner" : "default"}
-          onChange={(_, time) => {
-            setShowTimePicker(false);
-            if (time) setSelectedTime(time);
-          }}
+          onChange={onChangeTime}
         />
       )}
 
-      {inePhoto && <Image source={{ uri: inePhoto }} style={styles.ineImage} />}
+      {(inePhoto || visit.inePhoto) && (
+        <Image
+          source={{
+            uri: inePhoto || `data:image/jpeg;base64,${visit.inePhoto}`,
+          }}
+          style={styles.ineImage}
+        />
+      )}
 
       <TouchableOpacity style={styles.imageButton} onPress={handleImagePick}>
         <Text style={styles.imageButtonText}>
-          {inePhoto ? "Imagen seleccionada" : "Seleccionar foto del INE"}
+          {inePhoto ? "Nueva imagen seleccionada" : "Cambiar foto INE"}
         </Text>
       </TouchableOpacity>
 
       {loading && <ActivityIndicator size="large" color="#E96443" />}
 
-      <TouchableOpacity style={styles.button} onPress={handleRegisterWorker} disabled={loading}>
-        <Text style={styles.buttonText}>Registrar Trabajador</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleUpdateWorker}
+        disabled={loading}
+      >
+        <Text style={styles.buttonText}>Actualizar</Text>
       </TouchableOpacity>
     </View>
   );
@@ -198,6 +228,12 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     alignItems: "center",
     backgroundColor: "#fff",
+  },
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 20,
+    zIndex: 10,
   },
   title: {
     fontSize: 24,
@@ -227,20 +263,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  ineImage: {
-    width: 250,
-    height: 150,
-    marginVertical: 16,
-    borderRadius: 12,
-    resizeMode: "cover",
-    alignSelf: "center",
-  },  
   imageButton: {
     backgroundColor: "#E96443",
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
-    marginBottom: 10,
+    marginTop: 10,
     width: "90%",
     alignItems: "center",
   },
@@ -261,6 +289,14 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "bold",
   },
+  ineImage: {
+    width: 250,
+    height: 150,
+    marginVertical: 16,
+    borderRadius: 12,
+    resizeMode: "cover",
+    alignSelf: "center",
+  },  
 });
 
-export default RegisterWorkerScreen;
+export default WorkerEditScreen;

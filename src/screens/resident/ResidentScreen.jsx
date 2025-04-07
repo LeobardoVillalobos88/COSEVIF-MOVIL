@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from "react-native
 import { Ionicons } from "@expo/vector-icons";
 
 const ResidentScreen = ({ navigation }) => {
-  const options = [
+  const mainOptions = [
     {
       title: "Crear Visita",
       icon: "calendar-outline",
@@ -23,19 +23,26 @@ const ResidentScreen = ({ navigation }) => {
       color: "#388E3C",
     },
     {
-      title: "Ver Perfil",
-      icon: "person-circle-outline",
-      screen: "ProfileScreen",
-      color: "#1976D2",
+      title: "Lista de Trabajadores",
+      icon: "people-outline",
+      screen: "WorkersListScreen",
+      color: "#8E24AA",
     },
   ];
+
+  const profileOption = {
+    title: "Ver Perfil",
+    icon: "person-circle-outline",
+    screen: "ProfileScreen",
+    color: "#1976D2",
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.welcome}>Bienvenido Residente</Text>
 
       <View style={styles.grid}>
-        {options.map((item, index) => (
+        {mainOptions.map((item, index) => (
           <TouchableOpacity
             key={index}
             style={styles.card}
@@ -46,6 +53,15 @@ const ResidentScreen = ({ navigation }) => {
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* ✅ Botón de perfil en una fila separada */}
+      <TouchableOpacity
+        style={[styles.card, { marginTop: 30 }]}
+        onPress={() => navigation.navigate(profileOption.screen)}
+      >
+        <Ionicons name={profileOption.icon} size={50} color={profileOption.color} />
+        <Text style={styles.label}>{profileOption.title}</Text>
+      </TouchableOpacity>
     </View>
   );
 };
