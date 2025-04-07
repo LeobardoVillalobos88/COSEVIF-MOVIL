@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ImageBackground, StyleSheet, ActivityIndicator} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { login } from "../config/Api";
+import { login } from "../../config/Api";
 import Toast from "react-native-toast-message";
 
 const LoginScreen = ({ navigation }) => {
@@ -56,7 +56,7 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <ImageBackground
-      source={require("../../assets/login_bg.png")}
+      source={require("../../../assets/login_bg.png")}
       style={styles.backgroundImage}
     >
       <View style={styles.overlay}>
@@ -97,6 +97,8 @@ const LoginScreen = ({ navigation }) => {
               placeholderTextColor="#ccc"
               secureTextEntry={!showPassword}
               style={styles.input}
+              keyboardType="default"
+              autoCapitalize="none"
             />
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
               <Ionicons

@@ -3,8 +3,8 @@ import { NavigationContainer } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import AppNavigator from "./src/navigation/AppNavigator";
 import { View, Text, Image } from "react-native";
-/*import { LogBox } from "react-native";
-LogBox.ignoreLogs(["Error en login: Credenciales incorrectas"]);*/
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(["Error en login: Credenciales incorrectas"]);
 
 export default function App() {
   return (

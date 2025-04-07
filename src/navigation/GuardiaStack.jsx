@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import GuardScreen from '../screens/GuardScreen';
-import ProfileScreen from '../screens/ProfileScreen';
+import GuardScreen from '../screens/guard/GuardScreen';
+import ProfileScreen from '../screens/auth/ProfileScreen';
 
 const Stack = createNativeStackNavigator();
 

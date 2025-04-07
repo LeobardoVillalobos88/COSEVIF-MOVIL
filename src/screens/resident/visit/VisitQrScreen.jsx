@@ -1,23 +1,16 @@
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  Share,
-  Platform,
-} from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as MediaLibrary from "expo-media-library";
 import * as FileSystem from "expo-file-system";
 import Toast from "react-native-toast-message";
 import * as Sharing from "expo-sharing";
+import { useNavigation } from "@react-navigation/native";
 
 const VisitQrScreen = ({ route }) => {
   const { visit } = route.params;
+  const navigation = useNavigation();
 
-  // Convierte Base64 a archivo físico y lo guarda en la galería
   const handleDownload = async () => {
     try {
       const permission = await MediaLibrary.requestPermissionsAsync();
@@ -30,7 +23,15 @@ const VisitQrScreen = ({ route }) => {
         return;
       }
 
-      // Extraer Base64 limpio
+      if (!visit.qrCode) {
+        Toast.show({
+          type: "error",
+          text1: "QR no disponible",
+          text2: "No hay QR para descargar.",
+        });
+        return;
+      }
+
       const base64 = visit.qrCode.replace(/^data:image\/png;base64,/, "");
       const filename = `${FileSystem.documentDirectory}qr_${Date.now()}.png`;
 
@@ -55,16 +56,23 @@ const VisitQrScreen = ({ route }) => {
     }
   };
 
-  // Compartir la imagen del QR generada
   const handleShare = async () => {
     try {
+      if (!visit.qrCode) {
+        Toast.show({
+          type: "error",
+          text1: "QR no disponible",
+          text2: "No hay QR para compartir.",
+        });
+        return;
+      }
       const base64 = visit.qrCode.replace(/^data:image\/png;base64,/, "");
       const path = `${FileSystem.cacheDirectory}qr_to_share.png`;
-  
+
       await FileSystem.writeAsStringAsync(path, base64, {
         encoding: FileSystem.EncodingType.Base64,
       });
-  
+
       const available = await Sharing.isAvailableAsync();
       if (!available) {
         Toast.show({
@@ -74,7 +82,7 @@ const VisitQrScreen = ({ route }) => {
         });
         return;
       }
-  
+
       await Sharing.shareAsync(path, {
         mimeType: "image/png",
         dialogTitle: "Compartir QR de visita",
@@ -91,44 +99,44 @@ const VisitQrScreen = ({ route }) => {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Ionicons name="arrow-back" size={28} color="#E96443" />
+      </TouchableOpacity>
+
       <Text style={styles.title}>QR DE VISITA</Text>
 
       <View style={styles.infoContainer}>
-        <Text style={styles.infoText}>
-          Fecha:{" "}
-          {new Date(visit.dateTime).toLocaleDateString("es-MX", {
-            weekday: "long",
-            day: "2-digit",
-            month: "long",
-            year: "numeric",
-          })}
-        </Text>
-        <Text style={styles.infoText}>
-          Hora:{" "}
-          {new Date(visit.dateTime).toLocaleTimeString("es-MX", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </Text>
+        <Text style={styles.infoText}>Fecha: {new Date(visit.dateTime).toLocaleDateString()}</Text>
+        <Text style={styles.infoText}>Hora: {new Date(visit.dateTime).toLocaleTimeString()}</Text>
+        <Text style={styles.infoText}>Visitante: {visit.visitorName}</Text>
+        <Text style={styles.infoText}>Placas: {visit.vehiclePlate || "N/A"}</Text>
+        <Text style={styles.infoText}>Personas: {visit.numPeople}</Text>
+        <Text style={styles.infoText}>Descripción: {visit.description || "N/A"}</Text>
+        <Text style={styles.infoText}>Contraseña: {visit.password || "Ninguna"}</Text>
       </View>
 
-      <Image
-        source={{ uri: visit.qrCode }}
-        style={styles.qrImage}
-        resizeMode="contain"
-      />
+      {visit.qrCode ? (
+        <>
+          <Image
+            source={{ uri: visit.qrCode }}
+            style={styles.qrImage}
+            resizeMode="contain"
+          />
+          <View style={styles.iconRow}>
+            <TouchableOpacity onPress={handleShare} style={styles.iconButton}>
+              <Ionicons name="share-social-outline" size={30} color="#E96443" />
+              <Text style={styles.iconText}>Compartir</Text>
+            </TouchableOpacity>
 
-      <View style={styles.iconRow}>
-        <TouchableOpacity onPress={handleShare} style={styles.iconButton}>
-          <Ionicons name="share-social-outline" size={30} color="#E96443" />
-          <Text style={styles.iconText}>Compartir</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={handleDownload} style={styles.iconButton}>
-          <Ionicons name="download-outline" size={30} color="#E96443" />
-          <Text style={styles.iconText}>Descargar</Text>
-        </TouchableOpacity>
-      </View>
+            <TouchableOpacity onPress={handleDownload} style={styles.iconButton}>
+              <Ionicons name="download-outline" size={30} color="#E96443" />
+              <Text style={styles.iconText}>Descargar</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      ) : (
+        <Text style={styles.noQRText}>El QR aún no está disponible.</Text>
+      )}
     </View>
   );
 };
@@ -140,6 +148,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     flex: 1,
   },
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 20,
+    zIndex: 10,
+  },
   title: {
     fontSize: 22,
     fontWeight: "bold",
@@ -148,7 +162,9 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     marginBottom: 10,
-    alignItems: "center",
+    alignItems: "flex-start",
+    width: "100%",
+    paddingHorizontal: 10,
   },
   infoText: {
     fontSize: 16,
@@ -175,6 +191,12 @@ const styles = StyleSheet.create({
     color: "#E96443",
     marginTop: 5,
     fontWeight: "bold",
+  },
+  noQRText: {
+    fontSize: 18,
+    color: "#888",
+    marginTop: 20,
+    textAlign: "center",
   },
 });
 

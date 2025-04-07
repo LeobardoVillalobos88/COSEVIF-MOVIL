@@ -1,29 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export const saveSession = async ({
-  token,
-  id,
-  role,
-  name,
-  email,
-  phone,
-  houseId,
-  houseID, // por si viene así
-}) => {
+export const saveSession = async (session) => {
   try {
-    const sessionData = [
-      ["token", token],
-      ["id", id],
-      ["role", role],
-      ["name", name],
-    ];
-
-    if (email) sessionData.push(["email", email]);
-    if (phone) sessionData.push(["phone", phone]);
-
-    // ✅ Solución: usa houseID si viene con esa forma
-    const finalHouseId = houseId ?? houseID ?? "";
-    sessionData.push(["houseId", finalHouseId]);
+    const sessionData = Object.entries(session)
+      .filter(([key, value]) => value !== undefined && value !== null)
+      .map(([key, value]) => [key, String(value)]);
 
     await AsyncStorage.multiSet(sessionData);
   } catch (error) {
@@ -44,7 +25,22 @@ export const getItem = async (key) => {
 // Cerrar sesión
 export const clearSession = async () => {
   try {
-    await AsyncStorage.multiRemove(["token", "id", "role", "name", "email", "phone"]);
+    await AsyncStorage.multiRemove([
+      "token",
+      "id",
+      "role",
+      "name",
+      "email",
+      "phone",
+      "username",
+      "lastName",
+      "address",
+      "street",
+      "age",
+      "birthDate",
+      "houseId",
+      "houseNumber",
+    ]);
   } catch (error) {
     console.error("Error limpiando sesión:", error);
   }

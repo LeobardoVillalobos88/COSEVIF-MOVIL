@@ -1,15 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  ImageBackground,
-  Animated,
-} from "react-native";
+import { View, Text, StyleSheet, Image, ImageBackground, Animated } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const SplashWelcomeGuardScreen = ({ navigation }) => {
+const SplashWelcomeScreen = ({ navigation }) => {
   const [name, setName] = useState("");
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -21,6 +14,7 @@ const SplashWelcomeGuardScreen = ({ navigation }) => {
 
     loadName();
 
+    // Animación de opacidad
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 1200,
@@ -28,7 +22,7 @@ const SplashWelcomeGuardScreen = ({ navigation }) => {
     }).start();
 
     const timer = setTimeout(() => {
-      navigation.replace("GuardiaStack");
+      navigation.replace("ResidentStack");
     }, 2000);
 
     return () => clearTimeout(timer);
@@ -36,12 +30,12 @@ const SplashWelcomeGuardScreen = ({ navigation }) => {
 
   return (
     <ImageBackground
-      source={require("../../assets/login_bg.png")}
+      source={require("../../../assets/login_bg.png")}
       style={styles.background}
     >
       <View style={styles.overlay}>
         <Animated.Text style={[styles.title, { opacity: fadeAnim }]}>
-          Bienvenido guardia
+          Bienvenido residente
         </Animated.Text>
 
         <Animated.Text style={[styles.username, { opacity: fadeAnim }]}>
@@ -49,7 +43,7 @@ const SplashWelcomeGuardScreen = ({ navigation }) => {
         </Animated.Text>
 
         <Animated.Image
-          source={require("../../assets/guardia_welcome.png")}
+          source={require("../../../assets/residente_welcome.png")}
           style={[styles.image, { opacity: fadeAnim }]}
           resizeMode="contain"
         />
@@ -88,4 +82,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SplashWelcomeGuardScreen;
+export default SplashWelcomeScreen;

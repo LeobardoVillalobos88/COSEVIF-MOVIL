@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { View, Text, StyleSheet, Image, ImageBackground, Animated } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const SplashWelcomeScreen = ({ navigation }) => {
+const SplashWelcomeGuardScreen = ({ navigation }) => {
   const [name, setName] = useState("");
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -14,7 +14,6 @@ const SplashWelcomeScreen = ({ navigation }) => {
 
     loadName();
 
-    // Animación de opacidad
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 1200,
@@ -22,7 +21,7 @@ const SplashWelcomeScreen = ({ navigation }) => {
     }).start();
 
     const timer = setTimeout(() => {
-      navigation.replace("ResidentStack");
+      navigation.replace("GuardiaStack");
     }, 2000);
 
     return () => clearTimeout(timer);
@@ -30,12 +29,12 @@ const SplashWelcomeScreen = ({ navigation }) => {
 
   return (
     <ImageBackground
-      source={require("../../assets/login_bg.png")}
+      source={require("../../../assets/login_bg.png")}
       style={styles.background}
     >
       <View style={styles.overlay}>
         <Animated.Text style={[styles.title, { opacity: fadeAnim }]}>
-          Bienvenido residente
+          Bienvenido guardia
         </Animated.Text>
 
         <Animated.Text style={[styles.username, { opacity: fadeAnim }]}>
@@ -43,7 +42,7 @@ const SplashWelcomeScreen = ({ navigation }) => {
         </Animated.Text>
 
         <Animated.Image
-          source={require("../../assets/residente_welcome.png")}
+          source={require("../../../assets/guardia_welcome.png")}
           style={[styles.image, { opacity: fadeAnim }]}
           resizeMode="contain"
         />
@@ -82,4 +81,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SplashWelcomeScreen;
+export default SplashWelcomeGuardScreen;

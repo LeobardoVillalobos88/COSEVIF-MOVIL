@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { clearSession } from "../config/Storage";
+import { clearSession } from "../../config/Storage";
 import Toast from "react-native-toast-message";
 
 const GuardScreen = ({ navigation }) => {

@@ -1,18 +1,10 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  Platform,
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Toast from "react-native-toast-message";
-import { getItem } from "../config/Storage";
-
-const API_URL = "http://192.168.0.40:8080";
+import { Ionicons } from '@expo/vector-icons';
+import { getItem } from "../../../config/Storage";
+import { API_URL } from "../../../config/IP";
 
 const CreateVisitScreen = ({ navigation }) => {
   const [visitorName, setVisitorName] = useState("");
@@ -24,7 +16,6 @@ const CreateVisitScreen = ({ navigation }) => {
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(new Date());
-
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
@@ -40,32 +31,33 @@ const CreateVisitScreen = ({ navigation }) => {
 
   const handleCreateVisit = async () => {
     setLoading(true);
-  
+
     try {
+      // Ahora solo se requiere el token, ya que el backend extrae el resident a partir del mismo.
       const token = await getItem("token");
-      const residentId = await getItem("id");
-      const houseId = await getItem("houseId");
-  
-      if (!token || !residentId || !houseId) {
+
+      if (!token) {
         Toast.show({
           type: "error",
           text1: "Sesión inválida",
-          text2: "Faltan datos del residente",
+          text2: "Token no proporcionado",
         });
         setLoading(false);
         return;
       }
-  
+
+      // Combinar la fecha y hora seleccionadas
       const combinedDate = new Date(selectedDate);
       combinedDate.setHours(selectedTime.getHours());
       combinedDate.setMinutes(selectedTime.getMinutes());
       combinedDate.setSeconds(0);
       combinedDate.setMilliseconds(0);
-  
+
+      // Ajustar la fecha a ISO sin la zona (para el backend)
       const offset = combinedDate.getTimezoneOffset(); // en minutos
       const localDate = new Date(combinedDate.getTime() - offset * 60000);
-      const dateTimeIso = localDate.toISOString().slice(0, 19); // sin zona
-  
+      const dateTimeIso = localDate.toISOString().slice(0, 19);
+
       const visitData = {
         visitorName,
         vehiclePlate,
@@ -74,7 +66,7 @@ const CreateVisitScreen = ({ navigation }) => {
         password,
         dateTime: dateTimeIso,
       };
-  
+
       const response = await fetch(`${API_URL}/resident/visit`, {
         method: "POST",
         headers: {
@@ -83,22 +75,21 @@ const CreateVisitScreen = ({ navigation }) => {
         },
         body: JSON.stringify(visitData),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Error al crear la visita");
       }
-  
+
       const data = await response.json();
-      console.log("✅ Visita creada:", data);
-  
       Toast.show({
         type: "success",
         text1: "Visita creada",
-        text2: data.qrCode ? "QR generado exitosamente" : "QR aún no disponible",
+        text2: data.qrCode
+          ? "QR generado exitosamente"
+          : "QR aún no disponible",
       });
-      
-      // ✅ Navegar correctamente dentro del stack
+
       navigation.navigate("ResidentStack", {
         screen: "VisitsListScreen",
       });
@@ -115,83 +106,100 @@ const CreateVisitScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Crear Visita</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Nombre del visitante"
-        value={visitorName}
-        onChangeText={setVisitorName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Placas del vehículo"
-        value={vehiclePlate}
-        onChangeText={setVehiclePlate}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Número de personas"
-        value={numPeople}
-        onChangeText={setNumPeople}
-        keyboardType="numeric"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Descripción"
-        value={description}
-        onChangeText={setDescription}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Clave de acceso"
-        value={password}
-        onChangeText={setPassword}
-      />
-
-      {/* FECHA */}
-      <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
-        <Text style={styles.dateText}>
-          Fecha: {selectedDate.toLocaleDateString()}
-        </Text>
-      </TouchableOpacity>
-
-      {showDatePicker && (
-        <DateTimePicker
-          value={selectedDate}
-          mode="date"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          onChange={onChangeDate}
-        />
-      )}
-
-      {/* HORA */}
-      <TouchableOpacity style={styles.dateButton} onPress={() => setShowTimePicker(true)}>
-        <Text style={styles.dateText}>
-          Hora: {selectedTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-        </Text>
-      </TouchableOpacity>
-
-      {showTimePicker && (
-        <DateTimePicker
-          value={selectedTime}
-          mode="time"
-          is24Hour={false}
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          onChange={onChangeTime}
-        />
-      )}
-
-      {loading && <ActivityIndicator size="large" color="#E96443" />}
-
+    <View style={{ flex: 1 }}>
       <TouchableOpacity
-        style={styles.button}
-        onPress={handleCreateVisit}
-        disabled={loading}
+        onPress={() => navigation.goBack()}
+        style={styles.backButton}
       >
-        <Text style={styles.buttonText}>Crear Visita</Text>
+        <Ionicons name="arrow-back" size={28} color="#E96443" />
       </TouchableOpacity>
+
+      <View style={styles.container}>
+        <Text style={styles.title}>Crear Visita</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Nombre del visitante"
+          value={visitorName}
+          onChangeText={setVisitorName}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Placas del vehículo"
+          value={vehiclePlate}
+          onChangeText={setVehiclePlate}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Número de personas"
+          value={numPeople}
+          onChangeText={setNumPeople}
+          keyboardType="numeric"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Descripción"
+          value={description}
+          onChangeText={setDescription}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Clave de acceso"
+          value={password}
+          onChangeText={setPassword}
+        />
+
+        <TouchableOpacity
+          style={styles.dateButton}
+          onPress={() => setShowDatePicker(true)}
+        >
+          <Text style={styles.dateText}>
+            Fecha: {selectedDate.toLocaleDateString()}
+          </Text>
+        </TouchableOpacity>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            onChange={onChangeDate}
+          />
+        )}
+
+        <TouchableOpacity
+          style={styles.dateButton}
+          onPress={() => setShowTimePicker(true)}
+        >
+          <Text style={styles.dateText}>
+            Hora:{" "}
+            {selectedTime.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </Text>
+        </TouchableOpacity>
+
+        {showTimePicker && (
+          <DateTimePicker
+            value={selectedTime}
+            mode="time"
+            is24Hour={false}
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            onChange={onChangeTime}
+          />
+        )}
+
+        {loading && <ActivityIndicator size="large" color="#E96443" />}
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleCreateVisit}
+          disabled={loading}
+        >
+          <Text style={styles.buttonText}>Crear Visita</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -199,6 +207,12 @@ const CreateVisitScreen = ({ navigation }) => {
 export default CreateVisitScreen;
 
 const styles = StyleSheet.create({
+  backButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    zIndex: 999,
+  },  
   container: {
     flex: 1,
     padding: 20,

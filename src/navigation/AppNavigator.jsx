@@ -1,8 +1,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import LoginScreen from '../screens/LoginScreen';
-import SplashWelcomeResidentScreen from '../screens/SplashWelcomeResidentScreen';
-import SplashWelcomeGuardScreen from '../screens/SplashWelcomeGuardScreen';
+import LoginScreen from '../screens/auth/LoginScreen';
+import SplashWelcomeResidentScreen from '../screens/resident/SplashWelcomeResidentScreen';
+import SplashWelcomeGuardScreen from '../screens/guard/SplashWelcomeGuardScreen';
 import ResidentStack from './ResidentStack';
 import GuardiaStack from './GuardiaStack';
 
