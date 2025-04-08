@@ -11,8 +11,6 @@ import VisitEditScreen from '../screens/resident/visit/VisitEditScreen';
 import RegisterWorkerScreen from '../screens/resident/worker/RegisterWorkerScreen';
 import WorkersListScreen from '../screens/resident/worker/WorkersListScreen';
 import WorkerEditScreeen from '../screens/resident/worker/WorkerEditScreen';
-//Importaciones de guardia
-
 
 const Stack = createNativeStackNavigator();
 

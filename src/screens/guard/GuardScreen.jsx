@@ -1,50 +1,103 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { clearSession } from "../../config/Storage";
-import Toast from "react-native-toast-message";
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 const GuardScreen = ({ navigation }) => {
+  const mainOptions = [
+    {
+      title: "Escanear QR",
+      icon: "qr-code-outline",
+      screen: "ScanQrScreen",
+      color: "#E96443",
+    },
+    {
+      title: "Lista de Trabajadores",
+      icon: "people-outline",
+      screen: "WorkersListGuardScreen",
+      color: "#388E3C",
+    },
+  ];
+
+  const profileOption = {
+    title: "Ver Perfil",
+    icon: "person-circle-outline",
+    screen: "ProfileScreen",
+    color: "#1976D2",
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Bienvenido guardia</Text>
+      <Text style={styles.welcome}>Bienvenido Guardia</Text>
+
+      <View style={styles.grid}>
+        {mainOptions.map((item, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.card}
+            onPress={() => navigation.navigate(item.screen)}
+          >
+            <Ionicons name={item.icon} size={50} color={item.color} />
+            <Text style={styles.label}>{item.title}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
       <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate("ProfileScreen")}
+        style={[styles.card, { marginTop: 30 }]}
+        onPress={() => navigation.navigate(profileOption.screen)}
       >
-        <Text style={styles.buttonText}>Ver perfil</Text>
+        <Ionicons name={profileOption.icon} size={50} color={profileOption.color} />
+        <Text style={styles.label}>{profileOption.title}</Text>
       </TouchableOpacity>
     </View>
   );
 };
 
+export default GuardScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#fff",
+    padding: 20,
   },
-  text: {
-    fontSize: 24,
+  welcome: {
+    fontSize: 26,
     fontWeight: "bold",
+    marginBottom: 50,
     color: "#E96443",
-    marginBottom: 40,
   },
-  button: {
-    backgroundColor: "#E96443",
-    paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 10,
-    marginBottom: 20,
-    width: "80%",
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 20,
+  },
+  card: {
+    width: 140,
+    height: 140,
+    backgroundColor: "#fcdcd1",
+    borderRadius: 16,
     alignItems: "center",
+    justifyContent: "center",
+    margin: 10,
+    ...Platform.select({
+      android: { elevation: 8 },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+      },
+    }),
   },
-  buttonText: {
-    color: "#fff",
-    fontSize: 18,
+  label: {
+    fontSize: 15,
     fontWeight: "bold",
+    marginTop: 12,
+    textAlign: "center",
+    color: "#333",
   },
 });
-
-export default GuardScreen;
