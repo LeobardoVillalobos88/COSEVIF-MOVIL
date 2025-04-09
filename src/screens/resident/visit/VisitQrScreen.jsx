@@ -1,16 +1,5 @@
-"use client"
-
 import { useState } from "react"
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  SafeAreaView,
-  ScrollView,
-  ActivityIndicator,
-} from "react-native"
+import { View, Text, StyleSheet, Image, TouchableOpacity, SafeAreaView, ScrollView, ActivityIndicator } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import * as MediaLibrary from "expo-media-library"
 import * as FileSystem from "expo-file-system"

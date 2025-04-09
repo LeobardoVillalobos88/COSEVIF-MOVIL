@@ -1,17 +1,5 @@
-"use client"
-
 import React from "react"
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Platform,
-  SafeAreaView,
-  StatusBar,
-  Image,
-  ScrollView,
-} from "react-native"
+import { View, Text, StyleSheet, TouchableOpacity, Platform, SafeAreaView, StatusBar, Image, ScrollView } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { getItem } from "../../config/Storage"
 import { useEffect, useState } from "react"

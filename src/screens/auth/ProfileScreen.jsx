@@ -1,20 +1,5 @@
-"use client"
-
 import { useEffect, useState } from "react"
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  ScrollView,
-  TextInput,
-  ActivityIndicator,
-  SafeAreaView,
-  Platform,
-  KeyboardAvoidingView,
-  Alert,
-} from "react-native"
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput, ActivityIndicator, SafeAreaView, Platform, KeyboardAvoidingView, Alert } from "react-native"
 import { getItem, clearSession } from "../../config/Storage"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import Toast from "react-native-toast-message"

@@ -1,21 +1,5 @@
-"use client"
-
 import { useState, useRef } from "react"
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  Image,
-  Platform,
-  ScrollView,
-  KeyboardAvoidingView,
-  SafeAreaView,
-  Keyboard,
-  TouchableWithoutFeedback,
-} from "react-native"
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Image, Platform, ScrollView, KeyboardAvoidingView, SafeAreaView, Keyboard, TouchableWithoutFeedback } from "react-native"
 import Toast from "react-native-toast-message"
 import DateTimePicker from "@react-native-community/datetimepicker"
 import * as DocumentPicker from "expo-document-picker"

@@ -1,17 +1,5 @@
-"use client"
-
 import { useState, useEffect } from "react"
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  StyleSheet,
-  Animated,
-  ActivityIndicator,
-  SafeAreaView,
-  StatusBar,
-} from "react-native"
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, Animated, ActivityIndicator, SafeAreaView, StatusBar } from "react-native"
 import { useNavigation } from "@react-navigation/native"
 import moment from "moment"
 import { Ionicons } from "@expo/vector-icons"
@@ -153,7 +141,6 @@ const WorkersListGuardScreen = () => {
   )
 }
 
-// Datos de prueba para la demostración
 const MOCK_WORKERS = [
   {
     visit: {

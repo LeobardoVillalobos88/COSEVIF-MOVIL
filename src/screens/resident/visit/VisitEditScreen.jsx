@@ -1,20 +1,5 @@
-"use client"
-
 import { useState, useRef } from "react"
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  Platform,
-  ScrollView,
-  KeyboardAvoidingView,
-  SafeAreaView,
-  Keyboard,
-  TouchableWithoutFeedback,
-} from "react-native"
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Platform, ScrollView, KeyboardAvoidingView, SafeAreaView, Keyboard, TouchableWithoutFeedback } from "react-native"
 import DateTimePicker from "@react-native-community/datetimepicker"
 import Toast from "react-native-toast-message"
 import { Ionicons } from "@expo/vector-icons"

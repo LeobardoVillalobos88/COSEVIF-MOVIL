@@ -1,17 +1,5 @@
-"use client"
-
 import { useState, useCallback } from "react"
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  StyleSheet,
-  Animated,
-  ActivityIndicator,
-  SafeAreaView,
-  StatusBar,
-} from "react-native"
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, Animated, ActivityIndicator, SafeAreaView, StatusBar } from "react-native"
 import { getItem } from "../../../config/Storage"
 import { useNavigation, useFocusEffect } from "@react-navigation/native"
 import moment from "moment"

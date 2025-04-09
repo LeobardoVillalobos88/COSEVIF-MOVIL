@@ -1,15 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Platform,
-  SafeAreaView,
-  StatusBar,
-  Image,
-  ScrollView,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Platform, SafeAreaView, StatusBar, Image, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getItem } from "../../config/Storage";
 
@@ -27,19 +17,18 @@ const ResidentScreen = ({ navigation }) => {
     loadUserData();
   }, []);
 
-  // Using the navigation options from the first code
   const mainOptions = [
     {
       title: "Crear Visita",
       icon: "calendar-outline",
-      screen: "CreateVisit", // Keeping original screen name from first code
+      screen: "CreateVisit",
       color: "#E96443",
       description: "Registra una nueva visita",
     },
     {
       title: "Registrar Trabajador",
       icon: "person-add-outline",
-      screen: "RegisterWorker", // Keeping original screen name from first code
+      screen: "RegisterWorker",
       color: "#F57C00",
       description: "Añade un nuevo trabajador",
     },
@@ -60,7 +49,7 @@ const ResidentScreen = ({ navigation }) => {
   ];
 
   const profileOption = {
-    title: "Ver Perfil", // Using title from first code
+    title: "Ver Perfil", 
     icon: "person-circle-outline",
     screen: "ProfileScreen",
     color: "#1976D2",
