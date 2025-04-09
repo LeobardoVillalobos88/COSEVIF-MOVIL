@@ -163,7 +163,7 @@ const MOCK_WORKERS = [
       address: "Calle Hidalgo #123, Col. Centro",
       dateTime: "2025-04-05T09:30:00",
     },
-    residentName: "María Rodríguez",
+    residentName: "Ulises López",
     houseNumber: 42,
   },
   {
@@ -174,18 +174,18 @@ const MOCK_WORKERS = [
       address: "Av. Revolución #567, Col. Moderna",
       dateTime: "2025-04-06T14:15:00",
     },
-    residentName: "Carlos Mendoza",
+    residentName: "Angela Aguilar",
     houseNumber: 15,
   },
   {
     visit: {
       id: "3",
-      workerName: "Miguel Ángel Hernández",
+      workerName: "Miguel Ángel Sanchez",
       age: 45,
       address: "Calle Pino Suárez #89, Col. Reforma",
       dateTime: "2025-04-07T10:00:00",
     },
-    residentName: "Ana González",
+    residentName: "Arantza García",
     houseNumber: 23,
   },
   {
