@@ -12,7 +12,7 @@ const VisitDetailsScreen = ({ route }) => {
   const formatDate = (dateString) => {
     const date = new Date(dateString)
     const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" }
-    return date.toLocaleDateString(undefined, options)
+    return date.toLocaleDateString("es-ES", options)
   }
 
   const formatTime = (dateString) => {

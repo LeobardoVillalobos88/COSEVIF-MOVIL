@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, FlatList, StyleSheet, Animated, ActivityI
 import { getItem } from "../../../config/Storage"
 import { useNavigation, useFocusEffect } from "@react-navigation/native"
 import moment from "moment"
+import "moment/locale/es" // Añadir esta línea
 import Toast from "react-native-toast-message"
 import { Ionicons } from "@expo/vector-icons"
 import AwesomeAlert from "react-native-awesome-alerts"
@@ -94,8 +95,9 @@ const WorkersListScreen = () => {
     const date = moment(visit.dateTime).format("DD/MM/YYYY")
     const time = moment(visit.dateTime).format("hh:mm A")
     const isPast = moment(visit.dateTime).isBefore(moment())
-    const dayName = moment(visit.dateTime).format("dddd")
-    const formattedDayName = dayName.charAt(0).toUpperCase() + dayName.slice(1)
+    moment.locale("es")
+    const formattedDayName = moment(visit.dateTime).format("dddd")
+    const capitalizedDayName = formattedDayName.charAt(0).toUpperCase() + formattedDayName.slice(1)
 
     return (
       <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
@@ -120,7 +122,7 @@ const WorkersListScreen = () => {
               <View style={styles.infoItem}>
                 <Ionicons name="calendar-outline" size={16} color="#666" />
                 <Text style={styles.infoText}>
-                  {formattedDayName}, {date}
+                  {capitalizedDayName}, {date}
                 </Text>
               </View>
               <View style={styles.infoItem}>

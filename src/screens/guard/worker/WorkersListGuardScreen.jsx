@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, Animated, ActivityIndicator, SafeAreaView, StatusBar } from "react-native"
 import { useNavigation } from "@react-navigation/native"
 import moment from "moment"
+import "moment/locale/es" // Añadir esta línea
 import { Ionicons } from "@expo/vector-icons"
 
 const WorkersListGuardScreen = () => {
@@ -35,8 +36,9 @@ const WorkersListGuardScreen = () => {
     const date = moment(visit.dateTime).format("DD/MM/YYYY")
     const time = moment(visit.dateTime).format("hh:mm A")
     const isPast = moment(visit.dateTime).isBefore(moment())
-    const dayName = moment(visit.dateTime).format("dddd")
-    const formattedDayName = dayName.charAt(0).toUpperCase() + dayName.slice(1)
+    moment.locale("es")
+    const formattedDayName = moment(visit.dateTime).format("dddd")
+    const capitalizedDayName = formattedDayName.charAt(0).toUpperCase() + formattedDayName.slice(1)
 
     return (
       <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
@@ -61,7 +63,7 @@ const WorkersListGuardScreen = () => {
               <View style={styles.infoItem}>
                 <Ionicons name="calendar-outline" size={16} color="#666" />
                 <Text style={styles.infoText}>
-                  {formattedDayName}, {date}
+                  {capitalizedDayName}, {date}
                 </Text>
               </View>
               <View style={styles.infoItem}>
@@ -341,4 +343,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default WorkersListGuardScreen;
+export default WorkersListGuardScreen

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, FlatList, StyleSheet, Animated, ActivityI
 import { getItem } from "../../../config/Storage"
 import { useNavigation, useFocusEffect } from "@react-navigation/native"
 import moment from "moment"
+import "moment/locale/es" // Añadir esta línea
 import Toast from "react-native-toast-message"
 import { Ionicons } from "@expo/vector-icons"
 import AwesomeAlert from "react-native-awesome-alerts"
@@ -117,8 +118,9 @@ const VisitsListScreen = () => {
     const visitDate = moment(item.dateTime).format("DD/MM/YYYY")
     const visitTime = moment(item.dateTime).format("hh:mm A")
     const statusInfo = getStatusInfo(item)
-    const dayName = moment(item.dateTime).format("dddd")
-    const formattedDayName = dayName.charAt(0).toUpperCase() + dayName.slice(1)
+    moment.locale("es")
+    const formattedDayName = moment(item.dateTime).format("dddd")
+    const capitalizedDayName = formattedDayName.charAt(0).toUpperCase() + formattedDayName.slice(1)
     const past = isPast(item.dateTime)
     const hasQR = item.qrCode !== null && item.qrCode !== ""
 
@@ -145,7 +147,7 @@ const VisitsListScreen = () => {
               <View style={styles.dateContainer}>
                 <Ionicons name="calendar-outline" size={16} color="#666" />
                 <Text style={styles.dateText}>
-                  {formattedDayName}, {visitDate}
+                  {capitalizedDayName}, {visitDate}
                 </Text>
               </View>
               <View style={styles.timeContainer}>
