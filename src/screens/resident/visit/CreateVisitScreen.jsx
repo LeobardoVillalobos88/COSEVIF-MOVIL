@@ -373,6 +373,7 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   headerContainer: {
+    marginTop: -30,
     marginBottom: 10,
     alignItems: "center",
   },
