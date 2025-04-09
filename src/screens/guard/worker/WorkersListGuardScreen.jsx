@@ -1,62 +1,97 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  Animated,
-  ActivityIndicator,
-} from "react-native";
-import { getItem } from "../../../config/Storage";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
-import moment from "moment";
-import Toast from "react-native-toast-message";
-import { Ionicons } from "@expo/vector-icons";
-import { API_URL } from "../../../config/IP";
+import { useState, useEffect } from "react"
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, Animated, ActivityIndicator } from "react-native"
+import { useNavigation } from "@react-navigation/native"
+import moment from "moment"
+import { Ionicons } from "@expo/vector-icons"
+
+const MOCK_WORKERS = [
+  {
+    visit: {
+      id: "1",
+      workerName: "Juan Pérez Gómez",
+      age: 34,
+      address: "Calle Hidalgo #123, Col. Centro",
+      dateTime: "2025-04-05T09:30:00",
+    },
+    residentName: "María Rodríguez",
+    houseNumber: 42,
+  },
+  {
+    visit: {
+      id: "2",
+      workerName: "Roberto Sánchez López",
+      age: 28,
+      address: "Av. Revolución #567, Col. Moderna",
+      dateTime: "2025-04-06T14:15:00",
+    },
+    residentName: "Carlos Mendoza",
+    houseNumber: 15,
+  },
+  {
+    visit: {
+      id: "3",
+      workerName: "Miguel Ángel Hernández",
+      age: 45,
+      address: "Calle Pino Suárez #89, Col. Reforma",
+      dateTime: "2025-04-07T10:00:00",
+    },
+    residentName: "Ana González",
+    houseNumber: 23,
+  },
+  {
+    visit: {
+      id: "4",
+      workerName: "Luis Ramírez Torres",
+      age: 31,
+      address: "Av. Universidad #1245, Col. Del Valle",
+      dateTime: "2025-04-08T08:45:00",
+    },
+    residentName: "Sofía Martínez",
+    houseNumber: 8,
+  },
+  {
+    visit: {
+      id: "5",
+      workerName: "Fernando Ortiz Vega",
+      age: 39,
+      address: "Calle Morelos #456, Col. Juárez",
+      dateTime: "2025-04-08T16:30:00",
+    },
+    residentName: "Javier Fernández",
+    houseNumber: 37,
+  },
+]
 
 const WorkersListGuardScreen = () => {
-  const [workers, setWorkers] = useState([]);
-  const [fadeAnim] = useState(new Animated.Value(0));
-  const [loading, setLoading] = useState(true);
+  const [workers, setWorkers] = useState([])
+  const [fadeAnim] = useState(new Animated.Value(0))
+  const [loading, setLoading] = useState(true)
 
-  const navigation = useNavigation();
+  const navigation = useNavigation()
 
-  useFocusEffect(
-    React.useCallback(() => {
-      fetchWorkers();
-    }, [])
-  );
+  // Simular carga de datos
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Ordenar por fecha más reciente
+      const sorted = [...MOCK_WORKERS].sort((a, b) => new Date(b.visit.dateTime) - new Date(a.visit.dateTime))
+      setWorkers(sorted)
 
-  const fetchWorkers = async () => {
-    try {
-      setLoading(true);
-      const token = await getItem("token");
-      const response = await fetch(`${API_URL}/admin/guards`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }).start()
 
-      const data = await response.json();
+      setLoading(false)
+    }, 1500) // Simular tiempo de carga de 1.5 segundos
 
-      if (Array.isArray(data)) {
-        setWorkers(data);
-
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }).start();
-      }
-    } catch (error) {
-      console.error("Error fetching worker list:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return () => clearTimeout(timer)
+  }, [])
 
   const renderItem = ({ item }) => {
-    const { workerName, age, address, visitDate, houseNumber } = item;
-    const date = moment(visitDate).format("DD/MM/YYYY");
-    const time = moment(visitDate).format("hh:mm A");
+    const { visit, residentName, houseNumber } = item
+    const date = moment(visit.dateTime).format("DD/MM/YYYY")
+    const time = moment(visit.dateTime).format("hh:mm A")
 
     return (
       <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
@@ -65,7 +100,7 @@ const WorkersListGuardScreen = () => {
         <View style={styles.rowBetween}>
           <View style={{ flex: 1 }}>
             <Text style={styles.label}>Nombre:</Text>
-            <Text style={styles.value}>{workerName}</Text>
+            <Text style={styles.value}>{visit.workerName}</Text>
           </View>
           <View style={{ alignItems: "flex-end" }}>
             <Text style={styles.label}>Casa:</Text>
@@ -76,41 +111,54 @@ const WorkersListGuardScreen = () => {
         <View style={styles.row}>
           <View style={{ flex: 1 }}>
             <Text style={styles.label}>Edad:</Text>
-            <Text style={styles.value}>{age}</Text>
+            <Text style={styles.value}>{visit.age}</Text>
           </View>
           <View style={{ flex: 2 }}>
             <Text style={styles.label}>Dirección:</Text>
-            <Text style={styles.value}>{address}</Text>
+            <Text style={styles.value}>{visit.address}</Text>
+          </View>
+        </View>
+
+        <View style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.label}>Residente:</Text>
+            <Text style={styles.value}>{residentName}</Text>
           </View>
         </View>
 
         <Text style={styles.label}>Fecha y hora:</Text>
         <Text style={styles.value}>{`${date} - ${time}`}</Text>
       </Animated.View>
-    );
-  };
+    )
+  }
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Ionicons name="arrow-back" size={28} color="#E96443" />
+      </TouchableOpacity>
+
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Trabajadores Registrados</Text>
+        <Text style={styles.headerSubtitle}>Vista de Guardia</Text>
+      </View>
+
       {loading ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color="#E96443" />
-        </View>
-      ) : workers.length === 0 ? (
-        <View style={styles.centered}>
-          <Text style={styles.emptyText}>No hay trabajadores registrados aún.</Text>
+          <Text style={styles.loadingText}>Cargando trabajadores...</Text>
         </View>
       ) : (
         <FlatList
           data={workers}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.visit.id}
           renderItem={renderItem}
-          contentContainerStyle={{ paddingTop: 80, paddingBottom: 100 }}
+          contentContainerStyle={{ paddingTop: 120, paddingBottom: 100 }}
         />
       )}
     </View>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -118,10 +166,40 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 16,
   },
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 20,
+    zIndex: 10,
+  },
+  header: {
+    position: "absolute",
+    top: 40,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 5,
+    backgroundColor: "#fff",
+    paddingVertical: 10,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: 4,
+  },
   centered: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    color: "#666",
   },
   emptyText: {
     textAlign: "center",
@@ -161,6 +239,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 8,
   },
-});
+})
 
 export default WorkersListGuardScreen;
