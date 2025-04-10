@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Alert,
 import { CameraView, useCameraPermissions } from "expo-camera"
 import * as ImagePicker from "expo-image-picker"
 import { Ionicons } from "@expo/vector-icons"
+import { registerQrScan, getQrScanData } from "../../../config/QrScanData"
 
 const { width } = Dimensions.get("window")
 
@@ -17,6 +18,7 @@ export default function ScanQrScreen() {
   const [platePhoto, setPlatePhoto] = useState(null)
   const [loading, setLoading] = useState(false)
   const [scanAnimation, setScanAnimation] = useState(0)
+  const [scanCount, setScanCount] = useState(0)
 
   // Modificar el estado del checklist para incluir el nuevo check de nombre
   const [checklist, setChecklist] = useState({
@@ -76,45 +78,64 @@ export default function ScanQrScreen() {
         }
       })
 
+      // Agregar un código QR único basado en los datos
+      data.qrCode = `${data.houseId}-${data.visitorName}`.replace(/\s+/g, "-").toLowerCase()
+
       return data
     }
   }
 
   // Manejar escaneo de QR
-  const handleBarCodeScanned = ({ data }) => {
+  const handleBarCodeScanned = async ({ data }) => {
     setScanned(true)
     setLoading(true)
 
-    // Simular verificación en el backend
-    setTimeout(() => {
-      try {
-        // Parsear datos del QR en formato de texto
-        const parsedData = parseVisitData(data)
+    try {
+      // Parsear datos del QR en formato de texto
+      const parsedData = parseVisitData(data)
 
-        // Validar que se hayan obtenido datos mínimos
-        if (!parsedData.visitorName || !parsedData.houseId) {
-          throw new Error("Datos incompletos")
-        }
-
-        setVisitData(parsedData)
-
-        // Cambiar estado según si es entrada o salida
-        if (status === "pending") {
-          setStatus("in_progress")
-        } else if (status === "in_progress") {
-          setStatus("completed")
-        }
-
-        setLoading(false)
-      } catch (e) {
-        setLoading(false)
-        Alert.alert(
-          "QR inválido",
-          "El código escaneado no contiene datos de visita válidos.\n\nFormato esperado:\nVISITA REGISTRADA\nCasa: [ID]\nVisitante: [Nombre]...",
-          [{ text: "OK", onPress: () => setScanned(false) }],
-        )
+      // Validar que se hayan obtenido datos mínimos
+      if (!parsedData.visitorName || !parsedData.houseId) {
+        throw new Error("Datos incompletos")
       }
-    }, 1500) // Simular tiempo de carga
+
+      // Obtener el código QR único
+      const qrCode = parsedData.qrCode
+
+      // Verificar si ya se ha escaneado este QR antes
+      const existingData = await getQrScanData(qrCode)
+
+      if (existingData && existingData.scanCount >= 2) {
+        // Si ya se escaneó 2 veces, mostrar mensaje y no permitir más escaneos
+        Alert.alert("QR ya procesado", "Este código QR ya ha sido escaneado 2 veces y está completado.", [
+          { text: "OK", onPress: () => setScanned(false) },
+        ])
+        setLoading(false)
+        return
+      }
+
+      // Registrar el escaneo
+      const scanResult = await registerQrScan(qrCode)
+
+      // Actualizar el estado según el resultado del escaneo
+      setVisitData({
+        ...parsedData,
+        status: scanResult.status,
+        scanCount: scanResult.scanCount,
+      })
+
+      setStatus(scanResult.status)
+      setScanCount(scanResult.scanCount)
+
+      setLoading(false)
+    } catch (e) {
+      setLoading(false)
+      Alert.alert(
+        "QR inválido",
+        "El código escaneado no contiene datos de visita válidos.\n\nFormato esperado:\nVISITA REGISTRADA\nCasa: [ID]\nVisitante: [Nombre]...",
+        [{ text: "OK", onPress: () => setScanned(false) }],
+      )
+    }
   }
 
   // Tomar foto de cajuela
@@ -213,9 +234,7 @@ export default function ScanQrScreen() {
 
       Alert.alert(
         "Proceso completado",
-        status === "completed"
-          ? "La visita ha cambiado su estado"
-          : "La visita ha cambiado su estado",
+        status === "in_progress" ? "La visita ha sido registrada como en progreso." : "La visita ha sido completada.",
         [
           {
             text: "OK",
@@ -234,6 +253,7 @@ export default function ScanQrScreen() {
     setVisitData(null)
     setObservations("")
     setStatus("pending")
+    setScanCount(0)
     setTrunkPhoto(null)
     setPlatePhoto(null)
     setChecklist({
@@ -355,6 +375,25 @@ export default function ScanQrScreen() {
         <View style={styles.dataRow}>
           <Text style={styles.dataLabel}>N° de personas:</Text>
           <Text style={styles.dataValue}>{visitData?.peopleCount || "0"}</Text>
+        </View>
+
+        <View style={styles.dataRow}>
+          <Text style={styles.dataLabel}>Estado:</Text>
+          <Text
+            style={[
+              styles.dataValue,
+              {
+                color: status === "pending" ? "#FFA000" : status === "in_progress" ? "#2196F3" : "#4BB543",
+              },
+            ]}
+          >
+            {status === "pending" ? "Pendiente" : status === "in_progress" ? "En progreso" : "Completado"}
+          </Text>
+        </View>
+
+        <View style={styles.dataRow}>
+          <Text style={styles.dataLabel}>Escaneos:</Text>
+          <Text style={styles.dataValue}>{scanCount}/2</Text>
         </View>
 
         {visitData?.accessKey && (
@@ -523,6 +562,7 @@ export default function ScanQrScreen() {
 }
 
 const styles = StyleSheet.create({
+  // Mantener los estilos existentes...
   container: {
     flex: 1,
     backgroundColor: "#000",

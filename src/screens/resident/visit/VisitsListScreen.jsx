@@ -1,13 +1,14 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, Animated, ActivityIndicator, SafeAreaView, StatusBar } from "react-native"
 import { getItem } from "../../../config/Storage"
 import { useNavigation, useFocusEffect } from "@react-navigation/native"
 import moment from "moment"
-import "moment/locale/es" // Añadir esta línea
+import "moment/locale/es"
 import Toast from "react-native-toast-message"
 import { Ionicons } from "@expo/vector-icons"
 import AwesomeAlert from "react-native-awesome-alerts"
 import { API_URL } from "../../../config/IP"
+import { updateVisitsWithScanData } from "../../../config/QrScanData"
 
 const VisitsListScreen = () => {
   const [visits, setVisits] = useState([])
@@ -24,6 +25,17 @@ const VisitsListScreen = () => {
     }, []),
   )
 
+  // Actualizar la lista cada 5 segundos para reflejar cambios en los escaneos
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (visits.length > 0) {
+        updateVisitsWithScanStatus()
+      }
+    }, 5000)
+
+    return () => clearInterval(intervalId)
+  }, [visits])
+
   const fetchVisits = async () => {
     try {
       setLoading(true)
@@ -34,8 +46,12 @@ const VisitsListScreen = () => {
       const data = await response.json()
 
       if (Array.isArray(data)) {
+        // Ordenar por fecha
         const sorted = data.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime))
-        setVisits(sorted)
+
+        // Actualizar con datos de escaneo
+        const updatedVisits = await updateVisitsWithScanData(sorted)
+        setVisits(updatedVisits)
 
         Animated.timing(fadeAnim, {
           toValue: 1,
@@ -52,6 +68,16 @@ const VisitsListScreen = () => {
       })
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Actualizar el estado de las visitas con los datos de escaneo
+  const updateVisitsWithScanStatus = async () => {
+    try {
+      const updatedVisits = await updateVisitsWithScanData(visits)
+      setVisits([...updatedVisits]) // Crear un nuevo array para forzar la actualización
+    } catch (error) {
+      console.error("Error updating visit scan status:", error)
     }
   }
 
@@ -94,6 +120,24 @@ const VisitsListScreen = () => {
   const isPast = (date) => moment(date).isBefore(moment())
 
   const getStatusInfo = (item) => {
+    // Si la visita tiene un estado de escaneo, usarlo
+    if (item.status === "in_progress") {
+      return {
+        icon: "time-outline",
+        label: "En progreso",
+        color: "#2196F3",
+        bgColor: "#e8f4fd",
+      }
+    } else if (item.status === "completed") {
+      return {
+        icon: "checkmark-circle-outline",
+        label: "Completada",
+        color: "#4BB543",
+        bgColor: "#edf7ed",
+      }
+    }
+
+    // Si no, usar la lógica anterior
     const past = isPast(item.dateTime)
     const hasQR = item.qrCode !== null && item.qrCode !== ""
 
@@ -123,6 +167,9 @@ const VisitsListScreen = () => {
     const capitalizedDayName = formattedDayName.charAt(0).toUpperCase() + formattedDayName.slice(1)
     const past = isPast(item.dateTime)
     const hasQR = item.qrCode !== null && item.qrCode !== ""
+
+    // Verificar si los botones deben estar desactivados
+    const buttonsDisabled = past || item.scanCount >= 2 || item.status === "completed"
 
     return (
       <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
@@ -161,40 +208,48 @@ const VisitsListScreen = () => {
                 <Text style={styles.plateText}>{item.vehiclePlate}</Text>
               </View>
             )}
+
+            {/* Mostrar contador de escaneos si existe */}
+            {item.scanCount !== undefined && (
+              <View style={styles.scanCountContainer}>
+                <Ionicons name="scan-outline" size={16} color="#666" />
+                <Text style={styles.scanCountText}>Escaneos: {item.scanCount}/2</Text>
+              </View>
+            )}
           </View>
 
           <View style={styles.actionsContainer}>
             <TouchableOpacity
-              style={[styles.actionButton, past && styles.disabledActionButton]}
-              onPress={() => !past && navigation.navigate("VisitQrScreen", { visit: item })}
-              disabled={past}
+              style={[styles.actionButton, buttonsDisabled && styles.disabledActionButton]}
+              onPress={() => !buttonsDisabled && navigation.navigate("VisitQrScreen", { visit: item })}
+              disabled={buttonsDisabled}
             >
-              <View style={[styles.actionIconContainer, { backgroundColor: past ? "#f5f5f5" : "#edf7ed" }]}>
-                <Ionicons name="qr-code-outline" size={20} color={past ? "#bdbdbd" : "#4BB543"} />
+              <View style={[styles.actionIconContainer, { backgroundColor: buttonsDisabled ? "#f5f5f5" : "#edf7ed" }]}>
+                <Ionicons name="qr-code-outline" size={20} color={buttonsDisabled ? "#bdbdbd" : "#4BB543"} />
               </View>
-              <Text style={[styles.actionText, past && styles.disabledActionText]}>QR</Text>
+              <Text style={[styles.actionText, buttonsDisabled && styles.disabledActionText]}>QR</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.actionButton, past && styles.disabledActionButton]}
-              onPress={() => !past && navigation.navigate("VisitDetailsScreen", { visit: item })}
-              disabled={past}
+              style={[styles.actionButton, buttonsDisabled && styles.disabledActionButton]}
+              onPress={() => !buttonsDisabled && navigation.navigate("VisitDetailsScreen", { visit: item })}
+              disabled={buttonsDisabled}
             >
-              <View style={[styles.actionIconContainer, { backgroundColor: past ? "#f5f5f5" : "#e8f4fd" }]}>
-                <Ionicons name="eye-outline" size={20} color={past ? "#bdbdbd" : "#2196F3"} />
+              <View style={[styles.actionIconContainer, { backgroundColor: buttonsDisabled ? "#f5f5f5" : "#e8f4fd" }]}>
+                <Ionicons name="eye-outline" size={20} color={buttonsDisabled ? "#bdbdbd" : "#2196F3"} />
               </View>
-              <Text style={[styles.actionText, past && styles.disabledActionText]}>Ver</Text>
+              <Text style={[styles.actionText, buttonsDisabled && styles.disabledActionText]}>Ver</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.actionButton, past && styles.disabledActionButton]}
-              onPress={() => !past && navigation.navigate("VisitEditScreen", { visit: item })}
-              disabled={past}
+              style={[styles.actionButton, buttonsDisabled && styles.disabledActionButton]}
+              onPress={() => !buttonsDisabled && navigation.navigate("VisitEditScreen", { visit: item })}
+              disabled={buttonsDisabled}
             >
-              <View style={[styles.actionIconContainer, { backgroundColor: past ? "#f5f5f5" : "#fff8e1" }]}>
-                <Ionicons name="pencil-outline" size={20} color={past ? "#bdbdbd" : "#FFA000"} />
+              <View style={[styles.actionIconContainer, { backgroundColor: buttonsDisabled ? "#f5f5f5" : "#fff8e1" }]}>
+                <Ionicons name="pencil-outline" size={20} color={buttonsDisabled ? "#bdbdbd" : "#FFA000"} />
               </View>
-              <Text style={[styles.actionText, past && styles.disabledActionText]}>Editar</Text>
+              <Text style={[styles.actionText, buttonsDisabled && styles.disabledActionText]}>Editar</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionButton} onPress={() => confirmDeleteVisit(item.id)}>
@@ -276,6 +331,7 @@ const VisitsListScreen = () => {
 }
 
 const styles = StyleSheet.create({
+  // Mantener los estilos existentes...
   safeArea: {
     flex: 1,
     backgroundColor: "#fff",
@@ -408,11 +464,22 @@ const styles = StyleSheet.create({
   plateContainer: {
     flexDirection: "row",
     alignItems: "center",
+    marginBottom: 6,
   },
   plateText: {
     fontSize: 14,
     color: "#666",
     marginLeft: 4,
+  },
+  scanCountContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  scanCountText: {
+    fontSize: 14,
+    color: "#666",
+    marginLeft: 4,
+    fontWeight: "500",
   },
   actionsContainer: {
     flexDirection: "row",
